@@ -15,7 +15,9 @@
   /* ---------- smooth scroll ---------- */
   let lenis = null;
   if (!reduce && window.Lenis && hasGsap) {
-    lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95 });
+    lenis = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95,
+      // let inner scroll areas (tables, consoles, text boxes) scroll themselves
+      prevent: (node) => !!(node.closest && node.closest("[data-lenis-prevent], textarea, .vectors, .con-out, .scroll-y")) });
     Site.lenis = lenis;
     lenis.on("scroll", (e) => { ScrollTrigger.update(); Site.velocity = e.velocity || 0; });
     gsap.ticker.add((t) => lenis.raf(t * 1000));
