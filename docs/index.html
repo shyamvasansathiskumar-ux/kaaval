@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaaval · a guard for AI coding agents</title>
+<meta name="description" content="Kaaval (காவல், Tamil for guard) sits between an AI coding agent and the shell, database and tools, and decides allow, ask or deny before anything runs. Six real incidents replayed, all refused. Try the real Python in your browser.">
+<meta name="theme-color" content="#e8e1d3">
+<meta property="og:title" content="Kaaval · a guard for AI coding agents">
+<meta property="og:description" content="Six AI agents destroyed real data with nobody attacking them. Kaaval refuses all six, and still lets the narrow command run. By Shyam Kumar.">
+<meta property="og:image" content="og.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e8e1d3'/%3E%3Cpath d='M32 10 50 17v14c0 11-8 19-18 23-10-4-18-12-18-23V17z' fill='%23ef5a1c'/%3E%3C/svg%3E">
+<link rel="preload" href="cormorant.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add("js")</script>
+<script type="importmap">{ "imports": { "three": "./three.module.min.js" } }</script>
+</head>
+<body>
+<div class="loader" aria-hidden="true">
+  <div class="who"><span class="label bare">Kaaval · காவல்</span><span class="label bare">Shyam Kumar</span></div>
+  <div class="n"><b>00</b><sup>%</sup></div>
+</div>
+<canvas id="world" aria-hidden="true"></canvas>
+<ol class="rail" aria-label="Chapters"></ol>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="dot"></span>Kaaval <span class="tamil">காவல்</span></a>
+    <ul>
+      <li><a href="#rules">Rules</a></li>
+      <li><a href="#incidents">Incidents</a></li>
+      <li><a href="#play">Try it</a></li>
+      <li><a href="#hook">Claude Code</a></li>
+    </ul>
+    <a class="btn sm ghost" href="https://github.com/shyamvasansathiskumar-ux/kaaval" target="_blank" rel="noopener">Source <span class="arr">↗</span></a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- 00 · hero -->
+  <section class="hero" id="hero" data-stage="0" data-chapter="Kaaval">
+    <div class="wrap hero-in">
+      <p class="label" data-intro>AI agent safety · Python · 39 tests</p>
+      <h1 class="display hero-title" data-intro-split>Kaa<em>val</em></h1>
+      <p class="hero-tamil" data-intro><span class="tamil">காவல்</span> <span class="sep"></span> Tamil for <em>guard</em></p>
+      <div class="hero-foot">
+        <p class="lede" data-intro><strong>Allow, ask or deny,</strong> before the agent's command runs. A permission layer between an AI coding agent and the shell, the database and its tools.</p>
+        <div class="verdict card" data-intro aria-live="off">
+          <span class="label bare">Agent wants to run</span>
+          <code id="heroCmd">rm -rf tests/ patches/ plan/ ~/</code>
+          <span class="pill bad" id="heroVerdict">Deny</span>
+        </div>
+      </div>
+      <div class="hero-cta" data-intro>
+        <a class="btn acc" href="#play">Try the real guard <span class="arr">→</span></a>
+        <a class="btn ghost" href="#incidents">Six incidents, replayed</a>
+      </div>
+    </div>
+    <div class="wrap hero-meta" data-intro>
+      <span class="label bare">6 incidents · all refused</span><span class="label bare">No dependencies</span><span class="label bare">Claude Code hook</span><span class="label bare scroll-cue">Scroll</span>
+    </div>
+  </section>
+
+  <!-- 01 · why -->
+  <section id="why" data-stage="1" data-chapter="The finding">
+    <div class="wrap grid">
+      <div class="col-l"><p class="label" data-scramble>01 · The finding</p></div>
+      <div class="col-r stack">
+        <h2 class="h1" data-split>Nobody attacked them. <em>They broke anyway.</em></h2>
+        <p class="body big" data-rise>Between July 2025 and April 2026, six AI agents destroyed real data with no attacker involved: a home directory, a drive, a production database during a code freeze, an inbox after the user said stop. I catalogued them in <a href="https://github.com/shyamvasansathiskumar-ux/ai-incident-atlas" target="_blank" rel="noopener">ai-incident-atlas</a>.</p>
+        <p class="body big" data-rise>Every control that would have stopped them lives <strong>outside the model.</strong> None of them is a better prompt. Kaaval is those controls, written as code.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true"><div class="track" data-speed="42"><span>Allow</span><span>Ask</span><span>Deny</span><span>Before it runs</span><span>Permissions, not prompts</span></div></div>
+
+  <!-- 02 · rules -->
+  <section id="rules" class="how" data-stage="2" data-chapter="Five rules">
+    <div class="wrap how-head">
+      <p class="label" data-scramble>02 · Five rules</p>
+      <h2 class="h1" data-split>Five failures. <em>Five rules.</em></h2>
+      <p class="body" data-rise>Each rule enforces one entry of the checklist proposed in the atlas.</p>
+    </div>
+    <div class="hscroll" id="hscroll">
+      <div class="cards" id="cards">
+        <article class="step card"><header><span class="num">01</span><span class="label bare">Scope widening</span></header>
+          <h3 class="h3">The right command with an over-broad target.</h3>
+          <div class="live"><code class="cmd">rm -rf tests/ patches/ plan/ <mark>~/</mark></code></div>
+          <p class="fine">Every target of <code>rm</code>, <code>mv</code>, <code>find -delete</code>, <code>&gt;</code>, <code>dd</code>, <code>git clean</code> and Windows <code>rmdir /s</code> is resolved the way the shell will: <code>~</code>, <code>$HOME</code>, <code>..</code>, symlinks. Outside the workspace is denied. Targets that depend on runtime values go to a human.</p></article>
+        <article class="step card"><header><span class="num">02</span><span class="label bare">Unverified precondition</span></header>
+          <h3 class="h3">Carrying on after a step failed.</h3>
+          <div class="live"><code class="cmd">mkdir archive <span class="x">✗ failed</span><br>mv a.md archive/a.md</code></div>
+          <p class="fine">After a mutating step fails, or its post-condition doesn't hold, every further change is refused until a human runs <code>kaaval ack</code>. Moving several files into something that isn't a directory is refused before it runs.</p></article>
+        <article class="step card"><header><span class="num">03</span><span class="label bare">Constraint override</span></header>
+          <h3 class="h3">Breaking a freeze, or ignoring "stop".</h3>
+          <div class="live"><code class="cmd">kaaval freeze on<br>kaaval stop "don't touch the inbox"</code></div>
+          <p class="fine">Freeze and stop change permissions, not the prompt. While either is on, nothing that changes state runs. Reads still work.</p></article>
+        <article class="step card"><header><span class="num">04</span><span class="label bare">Credential overreach</span></header>
+          <h3 class="h3">A staging task reaching production or the backups.</h3>
+          <div class="live"><code class="cmd">railway volume delete pocketos-<mark>prod</mark>-db</code></div>
+          <p class="fine">The workspace is bound to one environment. Commands, SQL targets and tool calls that name another (<code>prod</code>, <code>live</code>) are denied, and destructive actions that name backups or snapshots are out of reach.</p></article>
+        <article class="step card final"><header><span class="num">05</span><span class="label bare">State misreporting</span></header>
+          <h3 class="h3">The agent's account of the damage is wrong.</h3>
+          <div class="live"><code class="cmd chain">#0 4802a4… → #1 9c1f0e… → #2 51ab73…</code></div>
+          <p class="fine">Every decision and real outcome goes into a hash-chained ledger. <code>kaaval report</code> says what happened from the record. <code>kaaval verify</code> catches any edited or deleted line.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · incidents -->
+  <section id="incidents" data-stage="3" data-chapter="Incidents">
+    <div class="wrap">
+      <div class="head-row">
+        <p class="label" data-scramble>03 · The incidents, replayed</p>
+        <h2 class="h1" data-split>Six refused. <em>The narrow command still runs.</em></h2>
+        <p class="body" data-rise>Each damaging action, run through the real guard. 08 and 09 are verbatim from the public record; the others are reconstructions of the same shape, and say so. A guard that blocks everything isn't a guard anyone keeps switched on, so each replay also checks the intended command is allowed.</p>
+      </div>
+      <div class="incidents" id="incList"></div>
+      <p class="rerun"><button class="btn ghost sm" id="rerun">Re-run all six live, in Python, in this browser</button> <span class="msg" id="rerunMsg"></span></p>
+    </div>
+  </section>
+
+  <!-- 04 · playground -->
+  <section id="play" data-stage="4" data-chapter="Try it">
+    <div class="wrap grid">
+      <div class="col-l stack">
+        <p class="label" data-scramble>04 · Try it</p>
+        <h2 class="h2" data-split>Be the agent. <em>Try to break something.</em></h2>
+        <p class="body" data-rise>This is the actual kaaval package, the same files as the repo, running in Python compiled to WebAssembly (Pyodide). Your workspace is <code>/home/you/project</code>, bound to <code>staging</code>. Nothing real can be deleted: the file system is a sandbox in this tab.</p>
+        <div class="tries" data-stagger>
+          <button class="chip" data-try="rm -rf ~/">rm -rf ~/</button>
+          <button class="chip" data-try="rm -rf build/ ../">rm -rf build/ ../</button>
+          <button class="chip" data-try="bash -c 'rm -rf $HOME/*'">bash -c 'rm -rf $HOME/*'</button>
+          <button class="chip" data-try="sql postgres://prod-db/app DELETE FROM users">DELETE on prod</button>
+          <button class="chip" data-try="find . -name '*.pyc' -delete">find -name -delete</button>
+          <button class="chip" data-try="freeze on">freeze on</button>
+          <button class="chip" data-try="tamper">tamper</button>
+          <button class="chip" data-try="verify">verify</button>
+          <button class="chip" data-try="help">help</button>
+        </div>
+      </div>
+      <div class="col-r">
+        <div class="console card" data-rise>
+          <div class="con-head"><span class="dots"><i></i><i></i><i></i></span><span class="mono">kaaval · /home/you/project · staging</span><span class="mono state" id="pyState">python not loaded</span></div>
+          <div class="con-out" id="conOut" aria-live="polite"></div>
+          <form class="con-in" id="conForm" autocomplete="off">
+            <span class="mono">$</span><input id="conIn" spellcheck="false" placeholder="type a command an agent might run" aria-label="Command">
+            <button class="btn sm acc" id="conGo">Check</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · hook -->
+  <section id="hook" class="ink-band" data-stage="5" data-chapter="Claude Code">
+    <div class="wrap grid">
+      <div class="col-l stack">
+        <p class="label" data-scramble>05 · In front of Claude Code</p>
+        <h2 class="h2" data-split>One hook. <em>Every tool call.</em></h2>
+        <p class="body" data-rise>Kaaval answers Claude Code's <code>PreToolUse</code> hook. Bash commands are checked as shell. Write and Edit are checked as writes to their file path. Other tools pass through to the agent's own permission settings.</p>
+      </div>
+      <div class="col-r stack">
+<pre class="term" data-rise><span class="dim">// .claude/settings.json</span>
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [{ "type": "command",
+                    "command": "python3 -m kaaval hook claude-code" }] }
+    ]
+  }
+}</pre>
+<pre class="term" data-rise><span class="dim">$</span> pip install .
+<span class="dim">$</span> kaaval init --env staging
+<span class="dim">$</span> kaaval check -- "rm -rf build"
+<span class="ok">ALLOW</span>  rm -rf build
+<span class="dim">$</span> kaaval report        <span class="dim"># what actually happened</span>
+<span class="dim">$</span> kaaval verify        <span class="dim"># is the record intact?</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 · limits -->
+  <section id="limits" data-stage="6" data-chapter="What it isn't">
+    <div class="wrap grid">
+      <div class="col-l stack">
+        <p class="label" data-scramble>06 · What this is not</p>
+        <h2 class="h2" data-split>Read this <em>before relying on it.</em></h2>
+      </div>
+      <div class="col-r">
+        <ol class="limits-list" data-stagger>
+          <li><b>It's not a sandbox.</b> It reads commands statically. A determined program can hide intent: write a script and run it, <code>python -c</code>, base64 into a shell. Kaaval is one layer, next to least-privilege credentials, an OS sandbox and backups the agent can't reach.</li>
+          <li><b>The environment check is a word match.</b> A production database called <code>db7</code> won't be caught. Name your environments, or bind credentials so the agent can't reach production at all. That's the real fix.</li>
+          <li><b>The SQL check reads keywords, not a parse tree.</b> Good enough to catch <code>DROP</code>, <code>TRUNCATE</code> and an unbounded <code>DELETE</code>. Not a SQL firewall.</li>
+          <li><b><code>ASK</code> needs a human to answer.</b> In an unattended pipeline, treat it as <code>DENY</code>.</li>
+        </ol>
+        <div class="map card" data-rise>
+          <p class="label bare">Mapping</p>
+          <dl>
+            <dt>OWASP LLM Top 10 (2025)</dt><dd>LLM05 Improper Output Handling · LLM06 Excessive Agency</dd>
+            <dt>OWASP Agentic Top 10 (2026)</dt><dd>ASI02 Tool Misuse · ASI03 Identity &amp; Privilege Abuse · ASI08 Cascading Failures</dd>
+            <dt>MITRE ATLAS</dt><dd>AML.T0101 Data Destruction via AI Agent Tool Invocation · AML.T0053 AI Agent Tool Invocation</dd>
+            <dt>NIST AI RMF</dt><dd>MANAGE 2.4 · MEASURE 2.6 · MAP 3.5 · GOVERN 6.1</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="big">Kaa<em>val</em>.</p>
+    <div class="row">
+      <div class="links">
+        <a class="btn acc" href="https://github.com/shyamvasansathiskumar-ux/kaaval" target="_blank" rel="noopener">Source on GitHub <span class="arr">↗</span></a>
+        <a class="btn ghost" href="https://github.com/shyamvasansathiskumar-ux/ai-incident-atlas" target="_blank" rel="noopener">The incident atlas <span class="arr">↗</span></a>
+        <a class="btn ghost" href="https://shyamvasansathiskumar-ux.github.io/kaappu/">Kaappu <span class="arr">→</span></a>
+        <a class="btn ghost" href="https://shyamvasansathiskumar-ux.github.io/fairdoor/">FairDoor <span class="arr">→</span></a>
+      </div>
+      <small>Shyam Kumar · REC Chennai · 2026<br>Built with Claude as a pair programmer. MIT licence.</small>
+    </div>
+  </div>
+</footer>
+
+<script src="gsap.min.js"></script>
+<script src="ScrollTrigger.min.js"></script>
+<script src="SplitText.min.js"></script>
+<script src="ScrambleTextPlugin.min.js"></script>
+<script src="lenis.min.js"></script>
+<script src="motion.js"></script>
+<script src="incidents.js"></script>
+<script src="kaaval-src.js"></script>
+<script src="app.js"></script>
+<script type="module" src="scene.js"></script>
+</body>
+</html>
