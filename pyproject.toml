@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kaaval"
+version = "0.1.0"
+description = "A permission layer between an AI coding agent and the things it can break."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Shyam Kumar" }]
+
+[project.scripts]
+kaaval = "kaaval.cli:main"
+
+[tool.setuptools]
+packages = ["kaaval"]
