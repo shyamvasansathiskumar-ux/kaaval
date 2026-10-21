@@ -104,6 +104,6 @@ Read this before relying on it.
 
 ## Notes
 
-Built with Claude as a pair programmer, from the controls written up in ai-incident-atlas. The rules, the test cases and the limits above are mine to defend.
+Built from the controls written up in [ai-incident-atlas](https://github.com/shyamvasansathiskumar-ux/ai-incident-atlas). The rules, the test cases and the limits above are mine to defend.
 
 MIT licence.
