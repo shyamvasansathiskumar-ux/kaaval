@@ -165,34 +165,54 @@
     });
   }
 
-  /* ---------- preloader → hero intro ---------- */
+  /* ---------- preloader → hero intro ----------
+     The loader is a small, centred view of the site's own 3D model (world.js renders it close up
+     while Site.loadPhase is "loading"), with a progress bar under it. At 100% the camera pulls
+     back out of the model into the full scene ("opening"), and the page content comes in. */
   const loader = document.querySelector(".loader");
+  const bar = loader && loader.querySelector(".bar i");
+  const pct = loader && loader.querySelector(".pct b");
+  Site.loadPhase = loader && hasGsap && !reduce ? "loading" : "done";
+  Site.loadProgress = 0;
+  Site.modelReady = () => loader && loader.classList.add("model");      // called by world.js on the first close-up frame
+  if (Site.loadPhase === "loading") document.documentElement.classList.add("is-loading");
   const worldReady = new Promise((res) => { Site.worldReady = res; setTimeout(res, 4000); });
   const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+  const unhide = () => document.documentElement.classList.remove("is-loading");
   function intro() {
     const heroBits = document.querySelectorAll("[data-intro]");
-    if (!hasGsap || reduce) { loader && loader.remove(); return; }
+    if (!hasGsap || reduce) { Site.loadPhase = "done"; unhide(); loader && loader.remove(); return; }
+    Site.openAt = performance.now();
+    Site.loadPhase = "opening";                                        // world.js flies the camera out of the model
     const tl = gsap.timeline();
-    if (loader) tl.to(loader, { clipPath: "inset(0 0 100% 0)", duration: 1.15, ease: "expo.inOut" }).add(() => loader.remove());
+    if (loader) {
+      tl.to(loader.querySelector(".mid"), { opacity: 0, y: 14, duration: 0.45, ease: "power2.in" })
+        .to(loader, { opacity: 0, duration: 0.5, ease: "power1.out" }, "-=.1")
+        .add(() => loader.remove());
+    }
+    tl.add(unhide, loader ? 0.35 : 0);
     document.querySelectorAll("[data-intro-split]").forEach((el) => {
       const s = SplitText.create(el, { type: "lines,chars", mask: "lines", linesClass: "split-line" });
-      tl.from(s.chars, { yPercent: 115, duration: 1.3, ease: "expo.out", stagger: 0.035 }, loader ? "-=.55" : 0);
+      tl.from(s.chars, { yPercent: 115, duration: 1.3, ease: "expo.out", stagger: 0.035 }, loader ? 0.55 : 0);
     });
-    tl.from(heroBits, { y: 30, opacity: 0, duration: 1.1, ease: "expo.out", stagger: 0.08 }, "-=1.0");
+    tl.from(heroBits, { y: 30, opacity: 0, duration: 1.1, ease: "expo.out", stagger: 0.08 }, loader ? 0.75 : 0);
   }
+  // Never leave the page hidden: if anything above throws or stalls, show it after 8 s.
+  setTimeout(() => { if (document.documentElement.classList.contains("is-loading")) { Site.loadPhase = "done"; unhide(); loader && loader.remove(); } }, 8000);
   Promise.all([fonts]).then(() => {
     reveals();
-    const n = loader && loader.querySelector(".n b");
     const start = performance.now();
-    const minT = reduce ? 0 : 1300, maxT = 3200;
+    const minT = reduce ? 0 : 1500, maxT = 3400;
     let worldDone = false; worldReady.then(() => (worldDone = true));
     let shown = 0, done = false;
     function tick() {
       const t = performance.now() - start;
       const cap = worldDone || t > maxT ? 100 : 90;
       shown = Math.min(cap, Math.max(shown + 0.5, (t / minT) * 100));
-      if (n) n.textContent = String(Math.min(99, Math.floor(shown))).padStart(2, "0");
-      if (!done && shown >= 100 && t >= minT) { done = true; if (n) n.textContent = "100"; intro(); ready.forEach((f) => f()); if (hasGsap) ScrollTrigger.refresh(); return; }
+      Site.loadProgress = shown / 100;
+      if (bar) bar.style.transform = `scaleX(${(shown / 100).toFixed(3)})`;
+      if (pct) pct.textContent = String(Math.min(99, Math.floor(shown))).padStart(2, "0");
+      if (!done && shown >= 100 && t >= minT) { done = true; if (pct) pct.textContent = "100"; intro(); ready.forEach((f) => f()); if (hasGsap) ScrollTrigger.refresh(); return; }
       requestAnimationFrame(tick);
     }
     tick();

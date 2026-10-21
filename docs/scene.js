@@ -100,6 +100,8 @@ createWorld(document.getElementById("world"), async ({ scene, camera, mobile }) 
   scene.add(world);
   [gate, shards, links, bar, ...cards].forEach((o) => world.add(o));
 
+  scene.userData.logo = gate;   // shown small and centred while the page loads
+
   return (st) => {
     const t = st.t, dt = st.dt;
     // spawn: follow the page's own verdict stream when it changes, else cycle

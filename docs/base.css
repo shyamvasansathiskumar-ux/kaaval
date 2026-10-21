@@ -132,12 +132,20 @@ section { position: relative; padding-block: clamp(96px, 15vh, 190px); }
 .pill.bad { background: var(--bad); color: #fff4ee; }
 .pill.ask { background: rgba(21, 18, 14, .08); color: var(--ink); }
 
-/* ---------- preloader ---------- */
-.loader { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: end start; padding: var(--gut); pointer-events: none; }
-.loader .n { font: 300 clamp(96px, 22vw, 340px)/.8 var(--serif); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
-.loader .n sup { font: 500 12px var(--mono); letter-spacing: .16em; vertical-align: top; margin-left: 10px; }
+/* ---------- preloader: the model, small and centred, with a bar ---------- */
+.loader { position: fixed; inset: 0; z-index: 100; background: var(--bg); pointer-events: none; transition: background-color .6s ease; }
+.loader.model { background-color: transparent; }            /* the 3D canvas behind now shows the model */
 .loader .who { position: absolute; top: var(--gut); left: var(--gut); right: var(--gut); display: flex; justify-content: space-between; }
+.loader .mid { position: absolute; left: 50%; top: 50%; width: min(240px, 60vw); transform: translate(-50%, 21vmin); display: grid; gap: 12px; }
+.loader .bar { height: 2px; background: color-mix(in srgb, var(--ink) 14%, transparent); overflow: hidden; border-radius: 2px; }
+.loader .bar i { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left center; will-change: transform; }
+.loader .meta { display: flex; justify-content: space-between; align-items: baseline; }
+.loader .pct { font-variant-numeric: tabular-nums; }
+.loader:not(.model) .mid::before { content: ""; position: absolute; left: 50%; bottom: calc(100% + 13vmin); width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--ink); opacity: .5; animation: ldot 1.1s ease-in-out infinite; }
+@keyframes ldot { 50% { transform: scale(.4); opacity: .15; } }
+html.is-loading .nav, html.is-loading main, html.is-loading .rail, html.is-loading footer { visibility: hidden; }
 html:not(.js) .loader { display: none; }
+@media (prefers-reduced-motion: reduce) { .loader { display: none; } }
 
 /* ---------- side rail ---------- */
 .rail { position: fixed; right: 18px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }

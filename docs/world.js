@@ -67,8 +67,63 @@ export async function createWorld(canvas, build, { bg = "#e8e1d3", fog = [9, 46]
   floor.rotation.x = -Math.PI / 2; floor.position.y = -1.6; floor.receiveShadow = true;
   scene.add(floor);
 
-  const ctx = { THREE, scene, camera, renderer, sun, hemi, floor, reduce, mobile: innerWidth < 800 };
+  const ctx = { THREE, scene, camera, renderer, sun, hemi, floor, reduce, mobile: innerWidth < 800, logo: null };
   const update = await build(ctx);
+  ctx.logo = scene.userData.logo || undefined;   // a scene names the group(s) that stand for the project
+
+  // ---- loader view: while the page loads, the camera holds a close-up of the scene's logo (one
+  // group or a list of groups), centred and small, with only the logo, the floor and the lights on
+  // layer 1. At 100% the camera pulls back out of it to the scene's own camera ("opening").
+  const fog0 = [scene.fog.near, scene.fog.far];
+  const OPEN_MS = 1700;
+  const DIR = new THREE.Vector3(0.5, 0.3, 1).normalize();
+  const rig = { p: new THREE.Vector3(), q: new THREE.Quaternion() };
+  const box = new THREE.Box3(), sph = new THREE.Sphere(), aim = new THREE.PerspectiveCamera();
+  let logos = null, kept = [];
+  function setLogos() {
+    const l = Array.isArray(ctx.logo) ? ctx.logo : ctx.logo ? [ctx.logo] : [];
+    logos = l.filter((o) => o && o.isObject3D);
+    if (!logos.length) return false;
+    logos.forEach((g) => g.traverse((o) => o.layers.enable(1)));
+    floor.layers.enable(1);
+    scene.traverse((o) => { if (o.isLight) o.layers.enable(1); });
+    return true;
+  }
+  function measure() {
+    box.makeEmpty();
+    logos.forEach((g) => box.expandByObject(g));
+    if (box.isEmpty()) return null;
+    box.getBoundingSphere(sph);
+    return sph.radius > 0 && isFinite(sph.radius) ? sph : null;
+  }
+  function loaderView(S) {
+    const phase = S.loadPhase;
+    if (!phase || phase === "done" || ctx.logo === null) { if (logos) camera.layers.enableAll(); return 0; }
+    if (!logos && !setLogos()) { ctx.logo = null; return 0; }
+    const k = phase === "opening" ? ease(Math.min(1, (performance.now() - (S.openAt || 0)) / OPEN_MS)) : 0;
+    if (k >= 1) { S.loadPhase = "done"; scene.fog.near = fog0[0]; scene.fog.far = fog0[1]; camera.layers.enableAll(); return 0; }
+    const s0 = measure();
+    if (!s0) { ctx.logo = null; camera.layers.enableAll(); return 0; }
+    const R = s0.radius;
+    // the model grows into place as loading runs (ease-out-back) and turns slowly
+    const p = phase === "opening" ? 1 : Math.min(1, S.loadProgress || 0);
+    const grow = Math.max(0.001, 0.35 + 0.65 * (1 + 2.70158 * Math.pow(p - 1, 3) + 1.70158 * Math.pow(p - 1, 2)));
+    const spin = (1 - k) * (performance.now() / 1000) * 0.6;
+    kept = logos.map((g) => [g.scale.clone(), g.rotation.y]);
+    logos.forEach((g) => { g.scale.multiplyScalar(grow); g.rotation.y += spin; });
+    const c = (measure() || s0).center.clone();
+    const m = Math.min(1, camera.aspect);   // the model fills about a third of the short side
+    const d = R / (0.16 * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * m);
+    aim.position.copy(c).addScaledVector(DIR, d); aim.lookAt(c);
+    rig.p.copy(camera.position); rig.q.copy(camera.quaternion);
+    camera.position.lerpVectors(aim.position, rig.p, k);
+    camera.quaternion.slerpQuaternions(aim.quaternion, rig.q, k);
+    scene.fog.near = THREE.MathUtils.lerp(Math.max(0.1, d - R * 1.2), fog0[0], k * k);
+    scene.fog.far = THREE.MathUtils.lerp(d + R * 2.5, fog0[1], k);
+    if (phase === "loading") camera.layers.set(1); else camera.layers.enableAll();
+    return 1;
+  }
+  function restore() { logos.forEach((g, i) => { g.scale.copy(kept[i][0]); g.rotation.y = kept[i][1]; }); }
 
   const state = { t: 0, dt: 0, stage: 0, progress: 0, px: 0, py: 0, w: innerWidth, h: innerHeight, mobile: innerWidth < 800 };
   function resize() {
@@ -94,8 +149,10 @@ export async function createWorld(canvas, build, { bg = "#e8e1d3", fog = [9, 46]
     state.px = damp(state.px, (S.pointer?.x || 0), 3, dt || 0.016);
     state.py = damp(state.py, (S.pointer?.y || 0), 3, dt || 0.016);
     update(state);
+    const held = loaderView(S);
     renderer.render(scene, camera);
-    if (first) { first = false; window.Site?.worldReady?.(); window.__worldFrames = 0; }
+    if (held) restore();       // the scene's own state stays untouched
+    if (first) { first = false; if (held) S.modelReady?.(); window.Site?.worldReady?.(); window.__worldFrames = 0; }
     window.__worldFrames++;
     if (!reduce) requestAnimationFrame(loop);
   }
